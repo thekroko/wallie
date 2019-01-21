@@ -1,0 +1,9 @@
+[Unit]
+Description=Websocket Motor Driver
+After=networking.service
+
+[Install]
+WantedBy=multi-user.target
+
+[Service]
+ExecStart=/usr/bin/python3 /home/pi/wallie/websocketMotorDriver.py

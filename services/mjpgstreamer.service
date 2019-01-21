@@ -1,0 +1,9 @@
+[Unit]
+Description=Webcam Video Streaming
+After=networking.service
+
+[Install]
+WantedBy=multi-user.target
+
+[Service]
+ExecStart=/usr/local/bin/mjpg_streamer -i "/usr/local/lib/mjpg-streamer/input_raspicam.so -hf -vf -fps 10" -o "/usr/local/lib/mjpg-streamer/output_http.so"

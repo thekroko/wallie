@@ -1,0 +1,9 @@
+[Unit]
+Description=Power usage log
+After=systemd-time-wait-sync.service
+
+[Install]
+WantedBy=multi-user.target
+
+[Service]
+ExecStart=/usr/bin/python /home/pi/wallie/powerLog.py

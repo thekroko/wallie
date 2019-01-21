@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Wall-E</title>
+    <meta name="viewport" content="user-scalable = no">
+    <style>
+      .camera { height: 480px; min-width: 640px; background: #CFC; }
+      .dygraph-legend > span.highlight { border: 1px solid grey; }
+    </style>
+<script type="text/javascript"
+  src="dygraph.min.js"></script>
+<link rel="stylesheet" src="dygraph.min.css" />
+  </head>
+  <body>
+    <center>
+      <h1>Wall-E</h1>
+      <img src="http://wallie.lan:8080/?action=stream" alt="Wall-E Camera" class="camera" />
+      <img src="http://chip.lan/?action=stream" alt="Chip Camera" class="camera" style="height: auto; width: auto; min-width: 48px;" />
+      <br/>
+      <canvas id="navball" width="512px" height="512px" style="background: #FFE; border: 1px solid black;"></canvas>
+      <div id="speed" style="font-size: 0.7em">..</div>
+      <script type="text/javascript">
+// State:
+var dirX = 0;
+var dirY = 0;
+var lastUpdate = Date.now();
+
+// Canvas:
+var canvas = document.getElementById('navball');
+var context = canvas.getContext('2d');
+var centerX = canvas.width / 2;
+var centerY = canvas.height / 2;
+var message = ''
+
+function drawCanvas() {
+	context.clearRect(0, 0, canvas.width, canvas.height);
+
+	// Concentrical circles:
+	for (var r = 10; r <  canvas.width / 2 - 10; r += 10) {
+		context.beginPath();
+		context.arc(centerX, centerY, r, 0 * Math.PI, 2 * Math.PI, false);
+		context.strokeStyle = '#AAA';
+		context.lineWidth = 2;
+		context.stroke();
+	}
+
+	// Center point
+	context.beginPath();
+	context.arc(centerX + dirX, centerY + dirY, 6, 0 * Math.PI, 2 * Math.PI, false);
+	context.fillStyle = 'red';
+	context.fill();
+	context.lineWidth = 1;
+	context.strokeStyle = '#000';
+	context.stroke();
+ 
+        // Message
+	context.font = '10pt Calibri';
+	context.fillStyle = 'black';
+	context.fillText(message, 10, 10);
+
+}
+drawCanvas();
+
+// Mouse clicks
+isDragging = false;
+function getMousePos(canvas, evt) {
+	var rect = canvas.getBoundingClientRect();
+	return {
+		x: evt.clientX - rect.left,
+		y: evt.clientY - rect.top
+	};
+}
+var context = canvas.getContext('2d');
+function onMouseMove(canvas, evt) {
+        if (evt != null && isDragging) {
+	  var mousePos = getMousePos(canvas, evt);
+ 	  message = 'Pos: ' + Number(mousePos.x) + ',' + Number(mousePos.y) + ', dragging=' + isDragging;
+          dirX = mousePos.x - centerX;
+          dirY = mousePos.y - centerY;
+          lastUpdate = Date.now();
+        } else { dirX = 0; dirY = 0; message = ''; }
+        updateSpeed();
+        drawCanvas();
+}
+
+canvas.addEventListener('mousemove', function(evt) { onMouseMove(canvas, evt);}, false);
+canvas.addEventListener('touchmove', function(evt) { evt.preventDefault(); onMouseMove(canvas, evt.touches.item(0));}, false);
+canvas.addEventListener('mousedown', function(evt) { isDragging = true; onMouseMove(canvas, evt);}, false);
+canvas.addEventListener('touchstart', function(evt) { evt.preventDefault(); isDragging = true; onMouseMove(canvas, evt.touches.item(0));}, false);
+canvas.addEventListener('mouseup', function(evt) { isDragging = false; onMouseMove(canvas, evt);}, false);
+canvas.addEventListener('touchend', function(evt) { evt.preventDefault(); isDragging = false; onMouseMove(canvas, null);}, false);
+canvas.addEventListener('mouseout', function(evt) { isDragging = false; onMouseMove(canvas, evt);}, false);
+
+function updateSpeed() {
+  var speedY = (-dirY / centerY);
+  var speedX = (dirX / centerX) * 0.5;
+  speedX = Math.min(Math.max(speedX, -1), 1);
+  speedY = Math.min(Math.max(speedY, -1), 1);
+  document.getElementById('speed').innerHTML = 'sX: '+speedX+'<br/>sY: '+speedY;
+  updateSpeedValues(speedX, speedY);
+}
+
+var socket = new WebSocket("ws://wallie.lan:7991");
+socket.onclose = () => document.getElementById('navball').style.border = '1px solid red';
+function updateSpeedValues(speedX, speedY) {
+   socket.send(speedX + ';' + speedY);
+}
+      </script>
+
+      <iframe id="power" src="power.txt" style="border: none; width: 300px; text-align: center;"></iframe>
+      <script type="text/javascript">
+        function updatePower(){
+  	  // hackishly force iframe to reload
+	  var iframe = document.getElementById('power');
+	  iframe.src = iframe.src
+          setTimeout(updatePower, 5000);
+        }
+        setTimeout(updatePower, 5000);
+      </script>
+
+      <div id="powerGraph" style="width: 100%; height: 512px">powerGraph</div>
+      <script type="text/javascript">
+      new Dygraph(document.getElementById("powerGraph"),"power.csv",{
+        labels: ['timestamp', 'V', 'mA', 'mW'],
+	series: { 'mA': { axis: 'y2' }, 'mW': { axis: 'y2' } },
+	axes: { y: {valueRange: [6.2, 8.4] } },
+	highlightCircleSize: 2,
+        strokeWidth: 1,
+        rollPeriod: 10,
+        highlightSeriesOpts: {
+          strokeWidth: 3,
+          strokeBorderWidth: 1,
+          highlightCircleSize: 5
+        }
+     });	
+      </script>
+    </center>
+  </body>
+</html>

@@ -1,0 +1,196 @@
+$date
+	Sun Jan 20 18:32:07 2019
+$end
+$version
+	Icarus Verilog
+$end
+$timescale
+	1s
+$end
+$scope module twi_slave_tb $end
+$var wire 1 ! sdaOutEn $end
+$var wire 1 " sdaOut $end
+$var wire 1 # effectiveSda $end
+$var reg 1 $ scl $end
+$var reg 1 % sdaIn $end
+$scope module INST $end
+$var wire 8 & dataOut [7:0] $end
+$var wire 1 $ scl $end
+$var wire 1 # sdaIn $end
+$var reg 3 ' bitCounter [2:0] $end
+$var reg 8 ( dataIn [7:0] $end
+$var reg 8 ) dataRead [7:0] $end
+$var reg 8 * dataToWrite [7:0] $end
+$var reg 1 + hasValidStartBit $end
+$var reg 1 , hasValidStopBit $end
+$var reg 1 - masterRead $end
+$var reg 1 " sdaOut $end
+$var reg 1 ! sdaOutEn $end
+$var reg 3 . state [2:0] $end
+$upscope $end
+$upscope $end
+$enddefinitions $end
+#0
+$dumpvars
+b0 .
+0-
+1,
+0+
+b0 *
+b0 )
+bx (
+b0 '
+b10101010 &
+1%
+1$
+1#
+0"
+0!
+$end
+#10
+1+
+0#
+0%
+#12
+z"
+0$
+#14
+b1 .
+b1 '
+1$
+#16
+0$
+#17
+0,
+1#
+1%
+#18
+b10 '
+1$
+#20
+0$
+#22
+b11 '
+1$
+#24
+0$
+#26
+b100 '
+1$
+#28
+0$
+#29
+0+
+0#
+0%
+#30
+b101 '
+1$
+#32
+0$
+#34
+b110 '
+1$
+#36
+0$
+#38
+b111 '
+1$
+#40
+0$
+#41
+1#
+1%
+#42
+b0 '
+1-
+b10 .
+1$
+#44
+0#
+1!
+0"
+0$
+#46
+b10101010 *
+b0 (
+b101 .
+1$
+#48
+1#
+1"
+0$
+#58
+b1 '
+1$
+#60
+0#
+0"
+0$
+#62
+b10 '
+1$
+#64
+1#
+1"
+0$
+#66
+b11 '
+1$
+#68
+0#
+0"
+0$
+#70
+b100 '
+1$
+#72
+1#
+1"
+0$
+#74
+b101 '
+1$
+#76
+0#
+0"
+0$
+#78
+b110 '
+1$
+#80
+1#
+1"
+0$
+#82
+b111 '
+1$
+#84
+0#
+0"
+0$
+#86
+b11 .
+1$
+#88
+1#
+0!
+z"
+0$
+#90
+b0 .
+b0 '
+1$
+#92
+0$
+#94
+1$
+#96
+0$
+#98
+1$
+#100
+0$
+#102
+1$
+#112
