@@ -2,9 +2,12 @@ PIN_DEF = icezero.pcf
 DEVICE = hx8k
 PACKAGE = tq144:4k
 
-all: blinky.bin
+all: top.bin
 
-%.blif: %.v
+%.blif: %.v *.v
+	yosys -p 'synth_ice40 -top top -blif $@' $< | (! grep "Warning: multiple conflicting driver")
+
+%.blif_loud: %.v *.v
 	yosys -p 'synth_ice40 -top top -blif $@' $<
 
 %.asc: $(PIN_DEF) %.blif
@@ -36,6 +39,9 @@ prog: $(PROJ).bin
 
 %.prog: %.bin
 	icezprog $<
+
+%.test: %_tb.vcd
+	gtkwave $<
 
 clean:
 	rm -f *.blif *.asc *.rpt *.bin

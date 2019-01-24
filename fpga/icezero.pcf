@@ -68,8 +68,6 @@ set_io --warn-no-port gpio_18  38
 set_io --warn-no-port gpio_19  37
 set_io --warn-no-port gpio_20   1
 set_io --warn-no-port gpio_21 144
-set_io --warn-no-port gpio_22 143
-set_io --warn-no-port gpio_23 142
 set_io --warn-no-port gpio_24  21
 set_io --warn-no-port gpio_25  20
 set_io --warn-no-port gpio_26   8
@@ -81,3 +79,8 @@ set_io --warn-no-port gpio_31  52
 
 set_io io_sda 115
 set_io io_scl 114
+
+set_io io_power_scl 143
+set_io io_power_sda 142
+
+set_io io_uart_tx 112

@@ -1,0 +1,214 @@
+#! /usr/bin/vvp
+:ivl_version "10.1 (stable)";
+:ivl_delay_selection "TYPICAL";
+:vpi_time_precision + 0;
+:vpi_module "system";
+:vpi_module "vhdl_sys";
+:vpi_module "v2005_math";
+:vpi_module "va_math";
+S_0x200fc0 .scope module, "twi_proxy_tb" "twi_proxy_tb" 2 1;
+ .timescale 0 0;
+L_0xb6c94010 .functor BUFT 1, C4<0>, C4<0>, C4<0>, C4<0>;
+v0x229300_0 .net/2u *"_s0", 0 0, L_0xb6c94010;  1 drivers
+L_0xb6c94038 .functor BUFT 1, C4<0>, C4<0>, C4<0>, C4<0>;
+v0x229388_0 .net/2u *"_s4", 0 0, L_0xb6c94038;  1 drivers
+v0x229400_0 .net "effectiveHostSda", 0 0, L_0x229708;  1 drivers
+v0x229458_0 .net "effectiveMirrorSda", 0 0, L_0x229808;  1 drivers
+v0x2294b0_0 .var "hostScl", 0 0;
+v0x229508_0 .net "hostSdaLow", 0 0, v0x229228_0;  1 drivers
+v0x229560_0 .var "hostSdaWanted", 0 0;
+v0x2295b8_0 .net "mirrorScl", 0 0, L_0x229908;  1 drivers
+v0x229610_0 .net "mirrorSdaLow", 0 0, v0x229020_0;  1 drivers
+v0x2296b0_0 .var "mirrorSdaWanted", 0 0;
+L_0x229708 .functor MUXZ 1, v0x229560_0, L_0xb6c94010, v0x229228_0, C4<>;
+L_0x229808 .functor MUXZ 1, v0x2296b0_0, L_0xb6c94038, v0x229020_0, C4<>;
+S_0x201088 .scope module, "INST" "twi_proxy" 2 11, 3 3 0, S_0x200fc0;
+ .timescale 0 0;
+    .port_info 0 /INPUT 1 "clk"
+    .port_info 1 /INPUT 1 "hostScl"
+    .port_info 2 /INPUT 1 "hostSdaIn"
+    .port_info 3 /OUTPUT 1 "hostSdaLow"
+    .port_info 4 /OUTPUT 1 "mirrorScl"
+    .port_info 5 /INPUT 1 "mirrorSdaIn"
+    .port_info 6 /OUTPUT 1 "mirrorSdaLow"
+L_0x229908 .functor BUFZ 1, v0x2294b0_0, C4<0>, C4<0>, C4<0>;
+o0x2011b0 .functor BUFZ 1, C4<z>; HiZ drive
+v0x201150_0 .net "clk", 0 0, o0x2011b0;  0 drivers
+v0x228e68_0 .var "hostRecovery", 0 0;
+v0x228ed0_0 .net "hostScl", 0 0, v0x2294b0_0;  1 drivers
+v0x228f28_0 .net "hostSdaIn", 0 0, L_0x229708;  alias, 1 drivers
+v0x228f90_0 .net "hostSdaLow", 0 0, v0x229228_0;  alias, 1 drivers
+v0x229020_0 .var "hostToMirror", 0 0;
+v0x229088_0 .var "mirrorRecovery", 0 0;
+v0x2290f0_0 .net "mirrorScl", 0 0, L_0x229908;  alias, 1 drivers
+v0x229158_0 .net "mirrorSdaIn", 0 0, L_0x229808;  alias, 1 drivers
+v0x2291c0_0 .net "mirrorSdaLow", 0 0, v0x229020_0;  alias, 1 drivers
+v0x229228_0 .var "mirrorToHost", 0 0;
+E_0x1fe318/0 .event edge, v0x228e68_0, v0x229088_0, v0x228f28_0, v0x229158_0;
+E_0x1fe318/1 .event edge, v0x229020_0, v0x229228_0;
+E_0x1fe318 .event/or E_0x1fe318/0, E_0x1fe318/1;
+    .scope S_0x201088;
+T_0 ;
+    %pushi/vec4 0, 0, 1;
+    %store/vec4 v0x229020_0, 0, 1;
+    %end;
+    .thread T_0;
+    .scope S_0x201088;
+T_1 ;
+    %pushi/vec4 0, 0, 1;
+    %store/vec4 v0x229228_0, 0, 1;
+    %end;
+    .thread T_1;
+    .scope S_0x201088;
+T_2 ;
+    %pushi/vec4 0, 0, 1;
+    %store/vec4 v0x228e68_0, 0, 1;
+    %end;
+    .thread T_2;
+    .scope S_0x201088;
+T_3 ;
+    %pushi/vec4 0, 0, 1;
+    %store/vec4 v0x229088_0, 0, 1;
+    %end;
+    .thread T_3;
+    .scope S_0x201088;
+T_4 ;
+    %wait E_0x1fe318;
+    %load/vec4 v0x228e68_0;
+    %load/vec4 v0x229088_0;
+    %concat/vec4; draw_concat_vec4
+    %load/vec4 v0x228f28_0;
+    %concat/vec4; draw_concat_vec4
+    %load/vec4 v0x229158_0;
+    %concat/vec4; draw_concat_vec4
+    %load/vec4 v0x229020_0;
+    %concat/vec4; draw_concat_vec4
+    %load/vec4 v0x229228_0;
+    %concat/vec4; draw_concat_vec4
+    %dup/vec4;
+    %pushi/vec4 36, 24, 6;
+    %cmp/z;
+    %jmp/1 T_4.0, 4;
+    %dup/vec4;
+    %pushi/vec4 24, 36, 6;
+    %cmp/z;
+    %jmp/1 T_4.1, 4;
+    %dup/vec4;
+    %pushi/vec4 4, 0, 6;
+    %cmp/z;
+    %jmp/1 T_4.2, 4;
+    %dup/vec4;
+    %pushi/vec4 8, 0, 6;
+    %cmp/z;
+    %jmp/1 T_4.3, 4;
+    %dup/vec4;
+    %pushi/vec4 10, 53, 6;
+    %cmp/z;
+    %jmp/1 T_4.4, 4;
+    %dup/vec4;
+    %pushi/vec4 5, 58, 6;
+    %cmp/z;
+    %jmp/1 T_4.5, 4;
+    %jmp T_4.6;
+T_4.0 ;
+    %pushi/vec4 0, 0, 1;
+    %assign/vec4 v0x228e68_0, 0;
+    %jmp T_4.6;
+T_4.1 ;
+    %pushi/vec4 0, 0, 1;
+    %assign/vec4 v0x229088_0, 0;
+    %jmp T_4.6;
+T_4.2 ;
+    %pushi/vec4 3, 0, 2;
+    %split/vec4 1;
+    %assign/vec4 v0x228e68_0, 0;
+    %assign/vec4 v0x229020_0, 0;
+    %jmp T_4.6;
+T_4.3 ;
+    %pushi/vec4 3, 0, 2;
+    %split/vec4 1;
+    %assign/vec4 v0x229088_0, 0;
+    %assign/vec4 v0x229228_0, 0;
+    %jmp T_4.6;
+T_4.4 ;
+    %pushi/vec4 0, 0, 1;
+    %assign/vec4 v0x229020_0, 0;
+    %jmp T_4.6;
+T_4.5 ;
+    %pushi/vec4 0, 0, 1;
+    %assign/vec4 v0x229228_0, 0;
+    %jmp T_4.6;
+T_4.6 ;
+    %pop/vec4 1;
+    %jmp T_4;
+    .thread T_4, $push;
+    .scope S_0x200fc0;
+T_5 ;
+    %pushi/vec4 0, 0, 1;
+    %store/vec4 v0x2294b0_0, 0, 1;
+    %end;
+    .thread T_5;
+    .scope S_0x200fc0;
+T_6 ;
+    %pushi/vec4 1, 0, 1;
+    %store/vec4 v0x229560_0, 0, 1;
+    %end;
+    .thread T_6;
+    .scope S_0x200fc0;
+T_7 ;
+    %pushi/vec4 1, 0, 1;
+    %store/vec4 v0x2296b0_0, 0, 1;
+    %end;
+    .thread T_7;
+    .scope S_0x200fc0;
+T_8 ;
+    %delay 1, 0;
+    %load/vec4 v0x2294b0_0;
+    %inv;
+    %assign/vec4 v0x2294b0_0, 0;
+    %jmp T_8;
+    .thread T_8;
+    .scope S_0x200fc0;
+T_9 ;
+    %vpi_call 2 23 "$dumpfile", "twi_proxy_tb.vcd" {0 0 0};
+    %vpi_call 2 24 "$dumpvars" {0 0 0};
+    %delay 5, 0;
+    %pushi/vec4 0, 0, 1;
+    %assign/vec4 v0x229560_0, 0;
+    %delay 10, 0;
+    %pushi/vec4 1, 0, 1;
+    %assign/vec4 v0x229560_0, 0;
+    %delay 20, 0;
+    %pushi/vec4 0, 0, 1;
+    %assign/vec4 v0x2296b0_0, 0;
+    %delay 25, 0;
+    %pushi/vec4 1, 0, 1;
+    %assign/vec4 v0x2296b0_0, 0;
+    %delay 30, 0;
+    %pushi/vec4 0, 0, 1;
+    %assign/vec4 v0x229560_0, 0;
+    %delay 35, 0;
+    %pushi/vec4 1, 0, 1;
+    %assign/vec4 v0x229560_0, 0;
+    %delay 40, 0;
+    %pushi/vec4 0, 0, 1;
+    %assign/vec4 v0x2296b0_0, 0;
+    %delay 45, 0;
+    %pushi/vec4 0, 0, 1;
+    %assign/vec4 v0x229560_0, 0;
+    %delay 50, 0;
+    %pushi/vec4 1, 0, 1;
+    %assign/vec4 v0x2296b0_0, 0;
+    %delay 55, 0;
+    %pushi/vec4 1, 0, 1;
+    %assign/vec4 v0x229560_0, 0;
+    %delay 60, 0;
+    %vpi_call 2 40 "$finish" {0 0 0};
+    %end;
+    .thread T_9;
+# The file index is used to find the file name in the following table.
+:file_names 4;
+    "N/A";
+    "<interactive>";
+    "twi_proxy_tb.v";
+    "twi_proxy.v";

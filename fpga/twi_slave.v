@@ -3,7 +3,6 @@ module twi_slave (
 		// Outside I/Os
 		input scl,
 		input sdaIn,
-		output reg sdaOut = 1'b0,
 		output reg sdaOutEn = 1'b0,
 
 		// Internal wiring
@@ -15,6 +14,8 @@ module twi_slave (
 	// State registers
 	reg hasValidStartBit = 1'b0;
 	reg hasValidStopBit = 1'b0;
+	reg stopRequested = 1'b0;
+	reg stopHandled = 1'b0;
 	
 	reg[2:0] state  = 3'b0;
 	localparam STATE_WAITING_FOR_START_BIT  = 3'b000;
@@ -28,6 +29,7 @@ module twi_slave (
 
 	reg[7:0] dataToWrite = 0; // Latched copy of data to write
 	reg[7:0] dataRead = 0; // Data (WIP)
+	reg addrMatches = 1'b0;
 
 	// Start & Stop bits:
 	// "The address and the data bytes are sent most significant bit
@@ -37,28 +39,43 @@ module twi_slave (
 	// place with SCL low."
 	always @ (negedge sdaIn) hasValidStartBit <= scl;
 	always @ (posedge sdaIn) hasValidStopBit <= scl;
+	always @ (posedge sdaIn) begin
+		if (stopRequested)
+			stopRequested <= 1'b0;
+		else if (scl && state != STATE_WAITING_FOR_START_BIT) begin
+			stopRequested <= ~stopRequested;
+		end
+	end
 
 	// Address & Data transmission: (Read happens on pos edge)
 	// "Transmitting a data bit consists of pulsing the clock line high
 	// while holding the data line steady at the desired level.
 	always @ (posedge scl) begin
-	  if (hasValidStopBit || state == STATE_WAITING_FOR_START_BIT) begin
-            if (hasValidStartBit && sdaIn == ADDR[6]) 
-		{state, bitCounter} <= {STATE_READING_ADDR, 3'd1};
+	  if (state == STATE_WAITING_FOR_START_BIT) begin
+            stopHandled <= 1'b0;
+            if (hasValidStartBit) 
+		{state, bitCounter, addrMatches} <= {STATE_READING_ADDR, 3'd1, sdaIn == ADDR[6]};
 	    else
-		state <= STATE_WAITING_FOR_START_BIT;
+		{state, addrMatches} <= {STATE_WAITING_FOR_START_BIT, 1'b0};
           end
+	  else if (stopRequested && !stopHandled)
+		  {state, addrMatches, stopHandled} <= {STATE_WAITING_FOR_START_BIT, 1'b0, 1'b1};
 	  else if (state == STATE_READING_ADDR) begin
 	  	// Only proceed if addr matches (MSB first)
 	    	if (bitCounter == 3'b111) begin
-	       		state <= STATE_WRITING_ACK;
-			masterRead <= sdaIn;
-			bitCounter <= 0;
+			if (addrMatches) begin
+  	       		  state <= STATE_WRITING_ACK;
+			  masterRead <= sdaIn;
+			  bitCounter <= 0;
+			end
+			else
+			  state <= STATE_WAITING_FOR_START_BIT;
 	        end
-	    	else if (sdaIn != ADDR[6 - bitCounter]) // Not our addr
-	       		state <= STATE_WAITING_FOR_START_BIT;
-            	else 
+		else begin
+			if (sdaIn != ADDR[6 - bitCounter]) // Not our addr
+	       			addrMatches <= 1'b0;
 			bitCounter <= bitCounter + 1;
+		end
           end
 	  else if (state == STATE_WRITING_ACK) begin
 	 	{state, bitCounter} <= {masterRead ? STATE_WRITE_DATA : STATE_READ_DATA, 3'd0};
@@ -88,10 +105,10 @@ module twi_slave (
 	// Write happens on negative edge
 	always @ (negedge scl) begin
 	  if (state == STATE_WRITING_ACK)
-	  	{sdaOutEn, sdaOut} <= 2'b10;
+	  	sdaOutEn <= 1'b1;
 	  else if (state == STATE_WRITE_DATA)
-		{sdaOutEn, sdaOut} <= {1'b1, dataToWrite[7 - bitCounter]};
+		sdaOutEn <= ~dataToWrite[7 - bitCounter];
 	  else
-		{sdaOutEn, sdaOut} <= 2'b0Z;
+		sdaOutEn <= 1'b0;
 	end
 endmodule

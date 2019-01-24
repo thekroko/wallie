@@ -1,0 +1,273 @@
+$date
+	Tue Jan 22 15:29:07 2019
+$end
+$version
+	Icarus Verilog
+$end
+$timescale
+	1s
+$end
+$scope module clkdiv_tb $end
+$var wire 1 ! clkOut5 $end
+$var wire 1 " clkOut4 $end
+$var wire 1 # clkOut2 $end
+$var wire 1 $ clkOut1 $end
+$var reg 1 % clkIn $end
+$scope module INST1 $end
+$var wire 1 % clkIn $end
+$var reg 1 $ clkOut $end
+$var reg 2 & counter [0:1] $end
+$upscope $end
+$scope module INST2 $end
+$var wire 1 % clkIn $end
+$var reg 1 # clkOut $end
+$var reg 2 ' counter [0:1] $end
+$upscope $end
+$scope module INST4 $end
+$var wire 1 % clkIn $end
+$var reg 1 " clkOut $end
+$var reg 1 ( counter [1:1] $end
+$upscope $end
+$scope module INST5 $end
+$var wire 1 % clkIn $end
+$var reg 1 ! clkOut $end
+$var reg 1 ) counter [1:1] $end
+$upscope $end
+$upscope $end
+$enddefinitions $end
+#0
+$dumpvars
+0)
+0(
+b0 '
+b0 &
+0%
+0$
+0#
+0"
+0!
+$end
+#1
+b1 &
+1#
+1(
+1)
+1%
+#2
+0%
+#3
+0)
+1!
+0(
+1"
+0#
+b10 &
+1%
+#4
+0%
+#5
+b11 &
+1#
+1(
+1)
+1%
+#6
+0%
+#7
+0)
+0!
+0(
+0"
+0#
+b0 &
+1%
+#8
+0%
+#9
+b1 &
+1#
+1(
+1)
+1%
+#10
+0%
+#11
+0)
+1!
+0(
+1"
+0#
+b10 &
+1%
+#12
+0%
+#13
+b11 &
+1#
+1(
+1)
+1%
+#14
+0%
+#15
+0)
+0!
+0(
+0"
+0#
+b0 &
+1%
+#16
+0%
+#17
+b1 &
+1#
+1(
+1)
+1%
+#18
+0%
+#19
+0)
+1!
+0(
+1"
+0#
+b10 &
+1%
+#20
+0%
+#21
+b11 &
+1#
+1(
+1)
+1%
+#22
+0%
+#23
+0)
+0!
+0(
+0"
+0#
+b0 &
+1%
+#24
+0%
+#25
+b1 &
+1#
+1(
+1)
+1%
+#26
+0%
+#27
+0)
+1!
+0(
+1"
+0#
+b10 &
+1%
+#28
+0%
+#29
+b11 &
+1#
+1(
+1)
+1%
+#30
+0%
+#31
+0)
+0!
+0(
+0"
+0#
+b0 &
+1%
+#32
+0%
+#33
+b1 &
+1#
+1(
+1)
+1%
+#34
+0%
+#35
+0)
+1!
+0(
+1"
+0#
+b10 &
+1%
+#36
+0%
+#37
+b11 &
+1#
+1(
+1)
+1%
+#38
+0%
+#39
+0)
+0!
+0(
+0"
+0#
+b0 &
+1%
+#40
+0%
+#41
+b1 &
+1#
+1(
+1)
+1%
+#42
+0%
+#43
+0)
+1!
+0(
+1"
+0#
+b10 &
+1%
+#44
+0%
+#45
+b11 &
+1#
+1(
+1)
+1%
+#46
+0%
+#47
+0)
+0!
+0(
+0"
+0#
+b0 &
+1%
+#48
+0%
+#49
+b1 &
+1#
+1(
+1)
+1%
+#50
+0%

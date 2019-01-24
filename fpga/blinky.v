@@ -1,5 +1,6 @@
 `include "prescaler.v"
 
+// Small blinking LED sketch ..
 module top (
 	input clk_100mhz,
 	output led1
