@@ -1,4 +1,4 @@
-// Prescaler that slows down the incoming clock by a specified value
+// WARNING: This code is (partially) broken; use twi_slave2.v instead
 module twi_slave (
 		// Outside I/Os
 		input scl,

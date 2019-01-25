@@ -1,5 +1,5 @@
 `include "prescaler.v"
-`include "twi_slave.v"
+`include "twi_slave2.v"
 `include "twi_proxy.v"
 `include "uart_tx.v"
 `include "clkdiv.v"
@@ -113,14 +113,14 @@ module top (
 	wire[7:0] ledOut;
 	always @ (ledOut) ledState <= ledOut[0];
 	assign led1 = ledState && clk_4hz;
-	twi_slave #(.ADDR(7'h33)) twi1(
-		.scl(io_scl), .sdaIn(hostSdaIn), .sdaOutEn(sdaLow1),
+	twi_slave2 #(.ADDR(7'h33)) twi1(
+		.scl(io_scl), .sda(hostSdaIn), .sdaLow(sdaLow1),
 		.dataOut({7'b0, ledState}), .dataIn(ledOut)
 	); 
 
 	// Constant 0x88 output register
-	twi_slave #(.ADDR(7'h44)) twi2(
-		.scl(io_scl), .sdaIn(hostSdaIn), .sdaOutEn(sdaLow2),
+	twi_slave2 #(.ADDR(7'h44)) twi2(
+		.scl(io_scl), .sda(hostSdaIn), .sdaLow(sdaLow2),
 		.dataOut(8'h88)
 	); 
 	
@@ -129,8 +129,8 @@ module top (
 	reg[7:0] mem = 8'h55;
 	wire[7:0] newMem;
 	always @ (newMem) mem <= newMem;
-	twi_slave #(.ADDR(7'h55)) twi3(
-		.scl(io_scl), .sdaIn(hostSdaIn), .sdaOutEn(sdaLow3),
+	twi_slave2 #(.ADDR(7'h55)) twi3(
+		.scl(io_scl), .sda(hostSdaIn), .sdaLow(sdaLow3),
 		.dataOut(mem), .dataIn(newMem)
 	); 
 
