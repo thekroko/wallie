@@ -84,3 +84,13 @@ set_io io_power_scl 143
 set_io io_power_sda 142
 
 set_io io_uart_tx 112
+
+set_io pmod2[0] 55 
+set_io pmod2[1] 56
+set_io pmod2[2] 47
+set_io pmod2[3] 48
+set_io pmod2[4] 44
+set_io pmod2[5] 45
+set_io pmod2[6] 42
+set_io pmod2[7] 43
+

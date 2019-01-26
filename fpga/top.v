@@ -3,6 +3,7 @@
 `include "twi_proxy.v"
 `include "uart_tx.v"
 `include "clkdiv.v"
+`include "rb_pol_110.v"
 
 module top (
 	input clk_100mhz,
@@ -12,6 +13,8 @@ module top (
 	inout io_sda,
 	output io_power_scl,
 	inout io_power_sda,
+	// P2 port (motor)
+	output[7:0] pmod2,
 	// Debugging
 	output io_uart_tx,
 	output gpio_18,
@@ -45,10 +48,14 @@ module top (
 	);
 `endif
 
-	// Blink LED with ~2 Hz
-	wire clk_4hz;
+	// Clocks
+	wire clk_16hz;
+	reg clk_8hz;
+	reg clk_4hz;
 	reg clk_2hz = 1'b0;
-	prescaler #(.bits(23)) ps1(.clk_in(clk_16mhz), .clk_out(clk_4hz));
+	prescaler #(.bits(21)) ps1(.clk_in(clk_16mhz), .clk_out(clk_16hz));
+	always @ (posedge clk_16hz) clk_8hz <= ~clk_8hz;
+	always @ (posedge clk_8hz) clk_4hz <= ~clk_4hz;
 	always @ (posedge clk_4hz) clk_2hz <= ~clk_2hz;
 
 	// I2C
@@ -94,46 +101,83 @@ module top (
 		.mirrorSdaLow(powerSdaOutEn)
 	);
 
-	// For debugging twi_proxy bypass:
-        //assign powerSdaOutEn = !hostSdaIn; // No mirror, just one-way proxy
-	//assign proxySdaLow = 1'b0;
-	//assign io_power_scl = io_scl;
-
 	reg[7:0] dbgHostSda = 0;
 	reg[7:0] dbgPowerSda = 0;
 	always @ (posedge hostSdaOutEn) dbgHostSda <= dbgHostSda + 1;
 	always @ (posedge powerSdaOutEn) dbgPowerSda <= dbgPowerSda + 1;
 
 	// Link all I2C buses together
-	wire sdaLow1, sdaLow2, sdaLow3;
-	assign hostSdaOutEn = |{proxySdaLow, sdaLow1, sdaLow2, sdaLow3};
+	wire sdaLowLed, sdaLowSpeed;
+	assign hostSdaOutEn = |{proxySdaLow, sdaLowMode, sdaLowSpeed};
 	
-	// 1-bit register controlling LED
-	reg ledState = 1'b1;
-	wire[7:0] ledOut;
-	always @ (ledOut) ledState <= ledOut[0];
-	assign led1 = ledState && clk_4hz;
-	twi_slave2 #(.ADDR(7'h33)) twi1(
-		.scl(io_scl), .sda(hostSdaIn), .sdaLow(sdaLow1),
-		.dataOut({7'b0, ledState}), .dataIn(ledOut)
+	// 8-bit register controlling the mode
+	reg[7:0] mode = 8'd1;
+	localparam MODE_OFF = 8'd0;
+	localparam MODE_RC = 8'd1;
+	localparam MODE_ULTRASOUND = 8'd2;
+
+	wire twiModeInClk;
+	wire[7:0] twiModeIn;
+	always @ (twiModeInClk) mode <= twiModeIn;
+	twi_slave2 #(.ADDR(7'h33)) twiMode(
+		.scl(io_scl), .sda(hostSdaIn), .sdaLow(sdaLowMode),
+		.dataOut(twiModeIn), .dataIn(twiModeIn), .dataInClk(twiModeInClk)
+	); 
+	always @* begin
+		case (mode)
+			default: led1 <= 1'b0;
+			MODE_RC: led1 <= clk_4hz;
+			MODE_ULTRASOUND: led1 <= clk_16hz;
+		endcase
+	end
+
+	// Motor Driver
+	signed reg[7:0] motorSpeedA;
+	signed reg[7:0] motorSpeedB;
+	reg speedUpdateTick = 0;
+	rb_pol_110 motorDriver(
+		.pwmA(pmod2[2]),
+		.pwmB(pmod2[7]),
+		.aIn({pmod2[4], pmod2[6]}),
+		.bIn({pmod2[5], pmod2[3]}),
+		.active(pmod2[1]),
+
+		.speedA(motorSpeedA),
+		.speedB(motorSpeedB),
+		.aliveStrobe(speedUpdateTick),
+		.clk_16mhz(clk_16mhz)
+	);
+	
+	// 16-bit register controlling motor speed (left, right)
+	wire[7:0] twiSpeedAddr;
+	wire[7:0] twiSpeedOut;
+	wire[7:0] twiSpeedIn;
+	wire twiSpeedInClk;
+	twi_slave2 #(.ADDR(7'h34)) twiSpeed(
+		.scl(io_scl), .sda(hostSdaIn), .sdaLow(sdaLowSpeed),
+		.addr(twiSpeedAddr),
+		.dataOut(twiSpeedOut), .dataIn(twiSpeedIn), .dataInClk(twiSpeedInClk)
 	); 
 
-	// Constant 0x88 output register
-	twi_slave2 #(.ADDR(7'h44)) twi2(
-		.scl(io_scl), .sda(hostSdaIn), .sdaLow(sdaLow2),
-		.dataOut(8'h88)
-	); 
-	
-	
-	// Simple R/W register
-	reg[7:0] mem = 8'h55;
-	wire[7:0] newMem;
-	always @ (newMem) mem <= newMem;
-	twi_slave2 #(.ADDR(7'h55)) twi3(
-		.scl(io_scl), .sda(hostSdaIn), .sdaLow(sdaLow3),
-		.dataOut(mem), .dataIn(newMem)
-	); 
+	// Mode-based actionsb
+	always @(posedge twiSpeedInClk) begin
+		case (twiSpeedAddr)
+			8'h00: motorSpeedA <= twiSpeedIn;
+			8'h01: {motorSpeedB, speedUpdateTick} <= {twiSpeedIn, ~speedUpdateTick};
+		endcase
+	end
 
+	always @* begin
+		case (twiSpeedAddr)
+			default: twiSpeedOut <= 8'hFF;
+			8'h00: twiSpeedOut <= motorSpeedA;
+			8'h01: twiSpeedOut <= motorSpeedB;
+		endcase
+	end
+
+
+
+	// ---------------------------------------------------------------
 	// Debug signals
 	assign gpio_20 = io_power_scl;
 	assign gpio_19 = hostSdaIn;
@@ -146,19 +190,15 @@ module top (
 		.clkIn(clk_16mhz),
 		.clkOut(clk_uart_9600)
 	);
-	uart_tx_stream #(.N(60), .WAIT(9600 / 5)) uart_tx1 (
+	uart_tx_stream #(.N(100), .WAIT(9600 / 5)) uart_tx1 (
 		.clk(clk_uart_9600), .tx(io_uart_tx),
 		.dataStream({
 			"[FPGA] hostSda=", hex8(dbgHostSda), 
 			" powerSda=", hex8(dbgPowerSda), 
+			" speedA=", hex8(motorSpeedA), 
+			" speedB=", hex8(motorSpeedB), 
+			" speedTick=", speedUpdateTick ? "Y" : "N", 
 			8'h0D})
 	);
-	//wire uart_clock_g;
-        //SB_GB gb1 (
- 	//  .USER_SIGNAL_TO_GLOBAL_BUFFER(uart_clk),
-	//  .GLOBAL_BUFFER_OUTPUT(uart_clock_g)
-	//);
-	//assign io_power_scl = uart_clk_g;
-
-        // */
+	// */
 endmodule
