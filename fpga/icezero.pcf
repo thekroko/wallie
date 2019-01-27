@@ -62,8 +62,6 @@ set_io --warn-no-port gpio_12  44
 set_io --warn-no-port gpio_13  45
 set_io --warn-no-port gpio_14  42
 set_io --warn-no-port gpio_15  43
-set_io --warn-no-port gpio_16  41
-set_io --warn-no-port gpio_17  39
 set_io --warn-no-port gpio_18  38
 set_io --warn-no-port gpio_19  37
 set_io --warn-no-port gpio_20   1
@@ -94,3 +92,9 @@ set_io pmod2[5] 45
 set_io pmod2[6] 42
 set_io pmod2[7] 43
 
+set_io --warn-no-port pmod1_0 141
+set_io pmod1_1 139
+set_io pmod1_6 134
+set_io pmod1_7 130
+set_io pmod3_0 41
+set_io pmod3_1 39

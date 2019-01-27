@@ -1,0 +1,257 @@
+$date
+	Sun Jan 27 01:53:35 2019
+$end
+$version
+	Icarus Verilog
+$end
+$timescale
+	1s
+$end
+$scope module uart_rx_tb $end
+$var reg 1 ! clk $end
+$var reg 1 " rx $end
+$scope module INST $end
+$var wire 1 # byteClk $end
+$var wire 1 " rx $end
+$var wire 1 ! uartClk $end
+$var wire 8 $ currentData [7:0] $end
+$var wire 1 % currentClk $end
+$var reg 80 & buffer [80:1] $end
+$scope module rx_inst $end
+$var wire 1 ' hasValidStartBit $end
+$var wire 1 ( hasValidStopBit $end
+$var wire 1 " rx $end
+$var wire 1 ! uartClk $end
+$var reg 1 ) abandoned $end
+$var reg 8 * data [7:0] $end
+$var reg 8 + dataOut [7:0] $end
+$var reg 1 % dataOutClk $end
+$var reg 1 , resetRequested $end
+$var reg 1 - startBit $end
+$var reg 1 . stopBit $end
+$scope function reverseBitOrder $end
+$var reg 8 / data [7:0] $end
+$var reg 8 0 reverseBitOrder [7:0] $end
+$var integer 32 1 i [31:0] $end
+$scope begin reverse $end
+$upscope $end
+$upscope $end
+$upscope $end
+$upscope $end
+$upscope $end
+$enddefinitions $end
+#0
+$dumpvars
+bx 1
+bx 0
+bx /
+1.
+x-
+0,
+bx +
+bx *
+x)
+1(
+x'
+b0 &
+x%
+bx $
+x#
+1"
+0!
+$end
+#2
+1#
+0%
+1!
+#4
+bx1 *
+0!
+#6
+1!
+#8
+bx11 *
+0!
+#9
+0"
+#10
+1!
+#12
+0(
+bx111 *
+0.
+0!
+#13
+1"
+#14
+1!
+#16
+1(
+bx1110 *
+1.
+0!
+#18
+1!
+#20
+bx11101 *
+0!
+#22
+1!
+#24
+bx111011 *
+0!
+#26
+1!
+#28
+bx1110111 *
+0!
+#29
+0"
+#30
+1!
+#32
+0(
+b11101111 *
+0.
+0!
+#34
+1!
+#36
+0'
+1-
+b11011110 *
+0!
+#38
+1!
+#40
+1)
+b10111100 *
+0!
+#42
+1!
+#44
+b1111000 *
+0!
+#45
+1"
+#46
+1!
+#48
+1'
+1(
+0-
+b11110000 *
+1.
+0!
+#49
+0"
+#50
+b1111 &
+0#
+1,
+b1111 $
+b1111 +
+1%
+b1111 0
+b1000 1
+b11110000 /
+1!
+#52
+0'
+0(
+1-
+b11111111 *
+0.
+0!
+#53
+1"
+#54
+1#
+0,
+0%
+1!
+#56
+1(
+b11111110 *
+1.
+0!
+#57
+0"
+#58
+1!
+#60
+0(
+b11111101 *
+0.
+0!
+#62
+1!
+#64
+b11111010 *
+0!
+#65
+1"
+#66
+1!
+#68
+1(
+b11110100 *
+1.
+0!
+#69
+0"
+#70
+1!
+#72
+0(
+b11101001 *
+0.
+0!
+#74
+1!
+#76
+b11010010 *
+0!
+#77
+1"
+#78
+1!
+#80
+1(
+b10100100 *
+1.
+0!
+#82
+1!
+#84
+b1001001 *
+0!
+#86
+1!
+#88
+1'
+0-
+b10010011 *
+0!
+#90
+b111111001001 &
+0#
+1,
+b11001001 $
+b11001001 +
+1%
+b11001001 0
+b1000 1
+b10010011 /
+1!
+#92
+0'
+1-
+b11111111 *
+0!
+#94
+1#
+0,
+0%
+1!
+#95

@@ -2,6 +2,7 @@
 `include "twi_slave2.v"
 `include "twi_proxy.v"
 `include "uart_tx.v"
+`include "uart_rx.v"
 `include "clkdiv.v"
 `include "rb_pol_110.v"
 
@@ -15,12 +16,14 @@ module top (
 	inout io_power_sda,
 	// P2 port (motor)
 	output[7:0] pmod2,
+	input pmod1_0,
+	input pmod1_1,
+	input pmod1_6,
+	input pmod1_7,
 	// Debugging
 	output io_uart_tx,
-	output gpio_18,
-	output gpio_19,
-	output gpio_20,
-	output gpio_21
+	output pmod3_0,
+	output pmod3_1,
 );
 	// Clock Generator
 	wire clk_16mhz, pll_locked;
@@ -131,6 +134,65 @@ module top (
 		endcase
 	end
 
+	// Beeper (TODO)
+
+	// Touch sensors
+	wire ioTouchLeftIn, ioTouchRightIn;
+	SB_IO #(
+		.PIN_TYPE(6'b1010_01),
+		.PULLUP(1'b1)
+	) ioTouchLeft (
+		.PACKAGE_PIN(pmod1_6),
+		.OUTPUT_ENABLE(1'b0),
+		.D_OUT_0(1'b0),
+		.D_IN_0(ioTouchLeftIn)
+        );
+	SB_IO #(
+		.PIN_TYPE(6'b1010_01),
+		.PULLUP(1'b1)
+	) ioTouchRight (
+		.PACKAGE_PIN(pmod1_7),
+		.OUTPUT_ENABLE(1'b0),
+		.D_OUT_0(1'b0),
+		.D_IN_0(ioTouchRightIn)
+        );
+	wire leftPressed = !ioTouchLeftIn;
+	wire rightPressed = !ioTouchRightIn;
+
+	// LiDaR
+	wire clk_uart_115200;
+     	clkdiv #(.DIV(139)) uart_lidar_clk_div(
+		.clkIn(clk_16mhz),
+		.clkOut(clk_uart_115200)
+	);
+	wire[9*8:1] lidarPacket;
+	wire lidarByteClk;
+        uart_rx_buffer #(.N(9)) lidar_uart(
+		.uartClk(clk_uart_115200),
+		.rx(pmod1_1),
+		.buffer(lidarPacket),
+		.byteClk(lidarByteClk)
+	);
+	
+	wire[7:0] lidarHeader1 = lidarPacket[9*8:8*8+1];
+	wire[7:0] lidarHeader2 = lidarPacket[8*8:7*8+1];
+	wire[7:0] lidarDistL = lidarPacket[7*8:6*8+1];
+	wire[7:0] lidarDistH = lidarPacket[6*8:5*8+1];
+	wire[7:0] lidarStrL = lidarPacket[5*8:4*8+1];
+	wire[7:0] lidarStrH = lidarPacket[4*8:3*8+1];
+	wire[7:0] lidarReserved = lidarPacket[3*8:2*8+1];
+	wire[7:0] lidarQual = lidarPacket[2*8:1*8+1];
+	wire[7:0] lidarChecksum = lidarPacket[1*8:0*8+1];
+
+	wire[7:0] calculatedLidarChecksum = lidarHeader1 + lidarHeader2 + lidarDistL + lidarDistH + lidarStrL + lidarStrH + lidarReserved + lidarQual;
+
+	wire isValidLidarPacket = (lidarHeader1 == 8'h59) && (lidarHeader2 == 8'h59) && (lidarChecksum == calculatedLidarChecksum);
+
+	reg[16:1] lidarDist = 0;
+	always @ (posedge isValidLidarPacket) begin
+		lidarDist <= {lidarDistH, lidarDistL};
+	end
+
 	// Motor Driver
 	signed reg[7:0] motorSpeedA;
 	signed reg[7:0] motorSpeedB;
@@ -148,7 +210,7 @@ module top (
 		.clk_16mhz(clk_16mhz)
 	);
 	
-	// 16-bit register controlling motor speed (left, right)
+	// TWI Speed 16-bit register
 	wire[7:0] twiSpeedAddr;
 	wire[7:0] twiSpeedOut;
 	wire[7:0] twiSpeedIn;
@@ -179,25 +241,25 @@ module top (
 
 	// ---------------------------------------------------------------
 	// Debug signals
-	assign gpio_20 = io_power_scl;
-	assign gpio_19 = hostSdaIn;
-	assign gpio_21 = powerSdaIn;
-	assign gpio_18 = !hostSdaOutEn;
+	assign pmod3_0 = pmod1_1;
+	assign pmod3_1 = lidarByteClk;
 
 	// Debugging via UART
 	wire clk_uart_9600;
-	clkdiv #(.DIV(16000000 / 9600)) uart_clk_div(
+	clkdiv #(.DIV(16000000 / 9600)) uart_dbg_clk_div(
 		.clkIn(clk_16mhz),
 		.clkOut(clk_uart_9600)
 	);
-	uart_tx_stream #(.N(100), .WAIT(9600 / 5)) uart_tx1 (
+	uart_tx_stream #(.N(120), .WAIT(9600 / 5)) uart_tx1 (
 		.clk(clk_uart_9600), .tx(io_uart_tx),
 		.dataStream({
-			"[FPGA] hostSda=", hex8(dbgHostSda), 
-			" powerSda=", hex8(dbgPowerSda), 
-			" speedA=", hex8(motorSpeedA), 
-			" speedB=", hex8(motorSpeedB), 
-			" speedTick=", speedUpdateTick ? "Y" : "N", 
+			"[FPGA] host=", hex8(dbgHostSda), 
+			" power=", hex8(dbgPowerSda), 
+			" spdA=", hex8(motorSpeedA), 
+			" spdB=", hex8(motorSpeedB), 
+			" spdT=", speedUpdateTick ? "Y" : "N",
+			" lr=", leftPressed ? "L" : "_", rightPressed ? "R" : "_",
+		        " lidar=", hex16(lidarDist),	
 			8'h0D})
 	);
 	// */

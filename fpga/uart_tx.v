@@ -13,7 +13,7 @@ module uart_format();
 
   function [48:1] hex16;
     input[16:1] in;
-    hex8 = {"0x", hex(in[16:13]), hex(in[12:9]), hex(in[8:5]), hex(in[4:1])};
+    hex16 = {"0x", hex(in[16:13]), hex(in[12:9]), hex(in[8:5]), hex(in[4:1])};
   endfunction
 `ifdef TESTBENCH
 endmodule
