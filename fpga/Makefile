@@ -1,3 +1,4 @@
+PROJ=top
 PIN_DEF = icezero.pcf
 DEVICE = hx8k
 PACKAGE = tq144:4k

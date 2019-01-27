@@ -20,8 +20,17 @@ module rb_pol_110(
   wire isAlive;
   wire[6:0] ticksA, ticksB;
 
+  reg[7:0] lspeedA = 0;
+  reg[7:0] lspeedB = 0;
+
   always @(posedge clk_16mhz) clk_8mhz <= ~clk_8mhz;
-  always @(posedge clk_8mhz) pwmTicker <= pwmTicker+1;
+  always @(posedge clk_8mhz) begin
+	  pwmTicker <= pwmTicker+1;
+	  if (pwmTicker + 7'd1 == 7'd0) begin
+		  lspeedA <= speedA;
+		  lspeedB <= speedB;
+	  end
+  end
   always @(posedge clk_16mhz) begin
 	  if (lastAliveStrobe != aliveStrobe) begin
 		  lastAliveStrobe <= aliveStrobe;
@@ -32,13 +41,13 @@ module rb_pol_110(
   end
 
   assign isAlive = (timeoutTicker != 0);
-  assign ticksA = speedA < 0 ? ~speedA[6:0] : speedA[6:0];
-  assign ticksB = speedB < 0 ? ~speedB[6:0] : speedB[6:0];
+  assign ticksA = lspeedA < 0 ? ~lspeedA[6:0] : lspeedA[6:0];
+  assign ticksB = lspeedB < 0 ? ~lspeedB[6:0] : lspeedB[6:0];
   
   // Outputs:
-  assign active = isAlive && (speedA != 0 || speedB != 0);
-  assign aIn = (speedA == 0 ? 2'b00 : (speedA > 0 ? 2'b01 : 2'b10));
-  assign bIn = (speedB == 0 ? 2'b00 : (speedB > 0 ? 2'b01 : 2'b10));
+  assign active = isAlive && (lspeedA != 0 || lspeedB != 0);
+  assign aIn = (lspeedA == 0 ? 2'b00 : (lspeedA > 0 ? 2'b01 : 2'b10));
+  assign bIn = (lspeedB == 0 ? 2'b00 : (lspeedB > 0 ? 2'b01 : 2'b10));
   assign pwmA = pwmTicker < ticksA;
   assign pwmB = pwmTicker < ticksB;
 endmodule

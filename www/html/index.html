@@ -118,6 +118,12 @@ function updateSpeedValues(speedX, speedY) {
         setTimeout(updatePower, 5000);
       </script>
 
+     <br>
+     <a href="cgi-bin/modeOff.sh" target="null">Mode Off</a>
+     <a href="cgi-bin/modeRc.sh" target="null">Mode RC</a>
+     <a href="cgi-bin/modeAi.sh" target="null">Mode AI</a>
+     <iframe id="null" name="null" height=2px width=2px></iframe>
+
       <div id="powerGraph" style="width: 100%; height: 512px">powerGraph</div>
       <script type="text/javascript">
       new Dygraph(document.getElementById("powerGraph"),"power.csv",{
