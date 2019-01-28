@@ -41,13 +41,13 @@ module rb_pol_110(
   end
 
   assign isAlive = (timeoutTicker != 0);
-  assign ticksA = lspeedA < 0 ? ~lspeedA[6:0] : lspeedA[6:0];
-  assign ticksB = lspeedB < 0 ? ~lspeedB[6:0] : lspeedB[6:0];
+  assign ticksA = lspeedA[7] ? (~lspeedA[6:0]+7'b1) : lspeedA[6:0];
+  assign ticksB = lspeedB[7] ? (~lspeedB[6:0]+7'b1) : lspeedB[6:0];
   
   // Outputs:
   assign active = isAlive && (lspeedA != 0 || lspeedB != 0);
-  assign aIn = (lspeedA == 0 ? 2'b00 : (lspeedA > 0 ? 2'b10 : 2'b00));
-  assign bIn = (lspeedB == 0 ? 2'b00 : (lspeedB > 0 ? 2'b10 : 2'b00));
+  assign aIn = (lspeedA == 0 ? 2'b00 : (lspeedA[7] ? 2'b01 : 2'b10));
+  assign bIn = (lspeedB == 0 ? 2'b00 : (lspeedB[7] ? 2'b01 : 2'b10));
   assign pwmA = pwmTicker < ticksA;
   assign pwmB = pwmTicker < ticksB;
 endmodule

@@ -113,8 +113,8 @@ module top (
 	always @ (posedge powerSdaOutEn) dbgPowerSda <= dbgPowerSda + 1;
 
 	// Link all I2C buses together
-	wire sdaLowLed, sdaLowSpeed;
-	assign hostSdaOutEn = |{proxySdaLow, sdaLowMode, sdaLowSpeed};
+	wire sdaLowLed, sdaLowSpeed, sdaLowMaxSpeed;
+	assign hostSdaOutEn = |{proxySdaLow, sdaLowMode, sdaLowSpeed, sdaLowMaxSpeed};
 	
 	// 8-bit register controlling the mode
 	reg[7:0] mode = 8'd1;
@@ -137,6 +137,16 @@ module top (
 		endcase
 	end
 
+	// 7-bit speed register
+	reg[6:0] maxSpeed = 8'd40;
+
+	wire twiMaxSpeedInClk;
+	wire[7:0] twiMaxSpeedIn;
+	always @ (twiMaxSpeedInClk) maxSpeed <= twiMaxSpeedIn;
+	twi_slave2 #(.ADDR(7'h35)) twiMaxSpeed(
+		.scl(io_scl), .sda(hostSdaIn), .sdaLow(sdaLowMaxSpeed),
+		.dataOut({1'b0, maxSpeed}), .dataIn(twiMaxSpeedIn), .dataInClk(twiMaxSpeedInClk)
+	); 
 
 	// Touch sensors
 	wire ioTouchLeftIn, ioTouchRightIn;
@@ -235,8 +245,8 @@ module top (
 
 
 	// Motor Driver
-	signed reg[7:0] motorSpeedA = 0;
-	signed reg[7:0] motorSpeedB = 0;
+	reg[7:0] motorSpeedA = 0;
+	reg[7:0] motorSpeedB = 0;
 	reg speedUpdateTick = 0;
 	rb_pol_110 motorDriver(
 		.pwmA(pmod2[2]),
@@ -281,7 +291,7 @@ module top (
 	end
 
 	// AI
-	signed reg[7:0] aiMotorLeft, aiMotorRight;
+	reg[7:0] aiMotorLeft, aiMotorRight;
 	reg aiUpdateTick = 1'b0;
 	reg backingOff = 1'b0;
 	reg colLeft = 1'b0;
@@ -292,8 +302,8 @@ module top (
 	reg isTurning = 0;
 	reg currentTurnDir = 0;
 
-	signed wire[7:0] aiFwdSpeed = 44;
-	signed wire[7:0] aiTurnSpeed = 44;
+	wire[7:0] aiFwdSpeed = maxSpeed;
+	wire[7:0] aiTurnSpeed = 44;
 	wire nextTurnDir;
 	reg[15*8:1] aiDebug = "$init";
 	assign nextTurnDir = ^lidarDist;
@@ -307,8 +317,8 @@ module top (
 			aiDebug <= "colLR";
 			// Back off for a while
 			if (backoffCounter < 8388607) begin
-				aiMotorLeft <= -aiFwdSpeed;
-				aiMotorRight <= -aiFwdSpeed;
+				aiMotorLeft <= (~aiFwdSpeed+1);
+				aiMotorRight <= (~aiFwdSpeed+1);
 				aiUpdateTick <= ~aiUpdateTick;
 				if (!leftPressed && !rightPressed)
 					backoffCounter <= backoffCounter + 1;
@@ -316,7 +326,7 @@ module top (
 			else
 				{colLeft, colRight, turnRequested} <= 3'b001;
 		end
-		else if (!isTurning && (turnRequested || lidarDist < 25)) begin
+		else if (!isTurning && (turnRequested || lidarDist < 45)) begin
 			aiDebug <= "initTurn";
 			turnRequested <= 1'b0;
 			isTurning <= 1'b1;
@@ -336,10 +346,10 @@ module top (
 				aiUpdateTick <= ~aiUpdateTick;
 				if (currentTurnDir) begin
 					aiMotorLeft <= aiTurnSpeed;
-					aiMotorRight <= -aiTurnSpeed;
+					aiMotorRight <= (~aiTurnSpeed+1);
 				end
 				else begin
-					aiMotorLeft <= -aiTurnSpeed;
+					aiMotorLeft <= (~aiTurnSpeed+1);
 					aiMotorRight <= aiTurnSpeed;
 				end
 			end
