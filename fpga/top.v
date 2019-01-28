@@ -303,7 +303,7 @@ module top (
 	reg currentTurnDir = 0;
 
 	wire[7:0] aiFwdSpeed = maxSpeed;
-	wire[7:0] aiTurnSpeed = 44;
+	wire[7:0] aiTurnSpeed = 50;
 	wire nextTurnDir;
 	reg[15*8:1] aiDebug = "$init";
 	assign nextTurnDir = ^lidarDist;
@@ -316,7 +316,7 @@ module top (
 		if (colLeft || colRight) begin
 			aiDebug <= "colLR";
 			// Back off for a while
-			if (backoffCounter < 8388607) begin
+			if (backoffCounter < 4388607) begin
 				aiMotorLeft <= (~aiFwdSpeed+1);
 				aiMotorRight <= (~aiFwdSpeed+1);
 				aiUpdateTick <= ~aiUpdateTick;
@@ -331,7 +331,7 @@ module top (
 			turnRequested <= 1'b0;
 			isTurning <= 1'b1;
 			currentTurnDir <= nextTurnDir;
-			turnCounter <= 23'd8_000_000;
+			turnCounter <= 23'd3_000_000;
 		end
 		else if (isTurning) begin
 			aiDebug <= "Turning";
