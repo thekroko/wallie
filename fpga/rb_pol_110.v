@@ -46,8 +46,8 @@ module rb_pol_110(
   
   // Outputs:
   assign active = isAlive && (lspeedA != 0 || lspeedB != 0);
-  assign aIn = (lspeedA == 0 ? 2'b00 : (lspeedA > 0 ? 2'b01 : 2'b10));
-  assign bIn = (lspeedB == 0 ? 2'b00 : (lspeedB > 0 ? 2'b01 : 2'b10));
+  assign aIn = (lspeedA == 0 ? 2'b00 : (lspeedA > 0 ? 2'b10 : 2'b00));
+  assign bIn = (lspeedB == 0 ? 2'b00 : (lspeedB > 0 ? 2'b10 : 2'b00));
   assign pwmA = pwmTicker < ticksA;
   assign pwmB = pwmTicker < ticksB;
 endmodule

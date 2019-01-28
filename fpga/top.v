@@ -27,11 +27,10 @@ module top (
 	output pmod3_1
 );
 	// Clock Generator
-	wire clk_16mhz, pll_locked;
+	wire clk_14mhz, pll_locked;
 `ifdef TESTBENCH
-	assign clk_16mhz = clk_100mhz, pll_locked = 1;
+	assign clk_14mhz = clk_100mhz, pll_locked = 1;
 `else
-
 	SB_PLL40_PAD #(
 		.FEEDBACK_PATH("SIMPLE"),
 		.DELAY_ADJUSTMENT_MODE_FEEDBACK("FIXED"),
@@ -39,17 +38,20 @@ module top (
 		.PLLOUT_SELECT("GENCLK"),
 		.FDA_FEEDBACK(4'b1111),
 		.FDA_RELATIVE(4'b1111),
-		.DIVR(4'b0011),		// DIVR =  3
-		.DIVF(7'b0101000),	// DIVF = 40
+		//  Fin=100, Fout=14.7456;
+		.DIVR(4'b1000),		// DIVR =  3
+		.DIVF(7'b1010100),	// DIVF = 40
 		.DIVQ(3'b110),		// DIVQ =  6
-		.FILTER_RANGE(3'b010)	// FILTER_RANGE = 2
+		.FILTER_RANGE(3'b001)	// FILTER_RANGE = 2
+
 	) pll (
 		.PACKAGEPIN   (clk_100mhz),
-		.PLLOUTGLOBAL (clk_16mhz ),
+		.PLLOUTGLOBAL (clk_14mhz ),
 		.LOCK         (pll_locked),
 		.BYPASS       (1'b0      ),
 		.RESETB       (1'b1      )
 	);
+
 `endif
 
 	// Clocks
@@ -57,7 +59,7 @@ module top (
 	reg clk_8hz;
 	reg clk_4hz;
 	reg clk_2hz = 1'b0;
-	prescaler #(.bits(21)) ps1(.clk_in(clk_16mhz), .clk_out(clk_16hz));
+	prescaler #(.bits(21)) ps1(.clk_in(clk_14mhz), .clk_out(clk_16hz));
 	always @ (posedge clk_16hz) clk_8hz <= ~clk_8hz;
 	always @ (posedge clk_8hz) clk_4hz <= ~clk_4hz;
 	always @ (posedge clk_4hz) clk_2hz <= ~clk_2hz;
@@ -96,7 +98,7 @@ module top (
         );
 `endif
         twi_proxy twiProxy (
-		.clk(clk_16mhz),
+		.clk(clk_14mhz),
 		.hostScl(io_scl),
 		.hostSdaIn(hostSdaIn),
 		.hostSdaLow(proxySdaLow),
@@ -159,12 +161,18 @@ module top (
 	wire leftPressed = !ioTouchLeftIn;
 	wire rightPressed = !ioTouchRightIn;
 
-	// LiDaR
+	// UART Clks
 	wire clk_uart_115200;
-     	clkdiv #(.DIV(139)) uart_lidar_clk_div(
-		.clkIn(clk_16mhz),
+	//prescaler #(.bits(7)) uart_lidar_prescaler(
+	//	.clk_in(clk_14mhz),
+	//	.clk_out(clk_uart_115200)
+	//);
+	clkdiv #(.DIV(128)) uart_lidar_clk_div(
+		.clkIn(clk_14mhz),
 		.clkOut(clk_uart_115200)
 	);
+
+	// Lidar
 	wire[9*8:1] lidarPacket;
 	wire lidarByteClk;
         uart_rx_buffer #(.N(9)) lidar_uart(
@@ -202,8 +210,8 @@ module top (
 	reg[7:0] lBeeperMax = 8'd0;
 
 	wire clk_audio;
-     	clkdiv #(.DIV(16_000_000 / 22_000)) audip_clk_div(
-		.clkIn(clk_16mhz),
+     	clkdiv #(.DIV(14_745_600 / 22_000)) audio_clk_div(
+		.clkIn(clk_14mhz),
 		.clkOut(clk_audio)
 	);
 
@@ -237,10 +245,10 @@ module top (
 		.bIn({pmod2[5], pmod2[3]}),
 		.active(pmod2[1]),
 
-		.speedA(-motorSpeedA),
-		.speedB(-motorSpeedB),
+		.speedA(motorSpeedA),
+		.speedB(motorSpeedB),
 		.aliveStrobe(speedUpdateTick),
-		.clk_16mhz(clk_16mhz)
+		.clk_16mhz(clk_14mhz)
 	);
 	
 	// TWI Speed 16-bit register
@@ -273,7 +281,7 @@ module top (
 	end
 
 	// AI
-	reg[7:0] aiMotorLeft, aiMotorRight;
+	signed reg[7:0] aiMotorLeft, aiMotorRight;
 	reg aiUpdateTick = 1'b0;
 	reg backingOff = 1'b0;
 	reg colLeft = 1'b0;
@@ -290,7 +298,7 @@ module top (
 	reg[15*8:1] aiDebug = "$init";
 	assign nextTurnDir = ^lidarDist;
 
-	always @(posedge clk_16mhz) begin
+	always @(posedge clk_14mhz) begin
 		// Check immediate collisions
 		if (leftPressed) {colLeft, backoffCounter} <= {1'b1, 23'd0};
 		if (rightPressed) {colRight, backoffCounter} <= {1'b1, 23'd0};	
@@ -360,13 +368,13 @@ module top (
 	assign pmod3_1 = lidarByteClk;
 
 	// Debugging via UART
-	wire clk_uart_9600;
-	clkdiv #(.DIV(16000000 / 9600)) uart_dbg_clk_div(
-		.clkIn(clk_16mhz),
+	/*wire clk_uart_9600;
+	clkdiv #(.DIV(14_745_600 / 9600)) uart_dbg_clk_div(
+		.clkIn(clk_14mhz),
 		.clkOut(clk_uart_9600)
-	);
-	uart_tx_stream #(.N(120), .WAIT(9600 / 5)) uart_tx1 (
-		.clk(clk_uart_9600), .tx(io_uart_tx),
+	);*/
+	uart_tx_stream #(.N(130), .WAIT(115200 / 10)) uart_tx1 (
+		.clk(clk_uart_115200), .tx(io_uart_tx),
 		.dataStream({
 			"[FPGA]", 
 			" power=", hex8(dbgPowerSda), 
@@ -376,7 +384,8 @@ module top (
 			" aiL=", hex8(aiMotorLeft), 
 			" aiD=", aiDebug, 
 			" lr=", leftPressed ? "L" : "_", rightPressed ? "R" : "_",
-		        " lidar=", hex16(lidarDist),	
+		        " lidar=", hex16(lidarDist),
+			"      ",	
 			8'h0D})
 	);
 	// */
